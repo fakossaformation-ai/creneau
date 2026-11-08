@@ -27,6 +27,7 @@ async function afficherCompte() {
   } catch (erreur) {
     moi = null;
   }
+  if (moi) await CRENEAU.assurerProfil(moi);
   $("sans-compte").hidden = Boolean(moi);
   $("form-compte").hidden = Boolean(moi);
   $("connecte").hidden = !moi;
