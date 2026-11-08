@@ -5,8 +5,8 @@
 // - creneaux_pris (debut, client_id) : le planning, les heures déjà prises, que tout le monde peut lire ;
 // - rendez_vous (debut, client_id, nom, telephone, motif, precision) : le carnet, que chaque client lit pour les
 //   siens, et que le coiffeur lit en entier ;
-// - profiles (id, role) : une ligne par compte, client ou coiffeur. L'application crée celle d'un nouveau client à son
-//   inscription et ne la lit jamais ; la base s'en sert pour reconnaître le coiffeur.
+// - profiles (id, role) : une ligne par compte, client ou admin. L'application crée celle d'un compte qui s'y connecte,
+//   s'il n'en a pas, et ne la lit jamais ; la base s'en sert pour reconnaître Fatou.
 // L'application ne trie rien : elle affiche ce que la base lui rend.
 
 const CRENEAU = (() => {
@@ -79,11 +79,17 @@ const CRENEAU = (() => {
   async function creerCompte(email, motDePasse) {
     const { data, error } = await relier().auth.signUp({ email, password: motDePasse });
     if (error) throw new Error(`Compte refusé. (${error.message})`);
-    if (!data.session) return false;
-    // Le compte sert tout de suite : son profil de client se crée, avec le rôle par défaut.
-    const profil = await relier().from("profiles").insert({ id: data.user.id });
-    if (profil.error) throw new Error(`Compte créé, mais son profil est refusé. (${profil.error.message})`);
-    return true;
+    return Boolean(data.session);
+  }
+
+  // Le profil de client, s'il manque : à chaque ouverture de l'application par un compte connecté, qu'il vienne de
+  // s'inscrire, de confirmer son adresse ou d'être créé dans Supabase. Une ligne déjà là, celle de Fatou comprise,
+  // reste telle quelle. Rend faux si la base refuse : l'application marche sans, seule Fatou a besoin de la sienne.
+  async function assurerProfil(moi) {
+    const { error } = await relier()
+      .from("profiles")
+      .upsert({ id: moi.id }, { onConflict: "id", ignoreDuplicates: true });
+    return !error;
   }
 
   async function connecter(email, motDePasse) {
@@ -195,6 +201,7 @@ const CRENEAU = (() => {
     planning,
     compte,
     creerCompte,
+    assurerProfil,
     connecter,
     deconnecter,
     reserver,
