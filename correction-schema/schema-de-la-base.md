@@ -16,7 +16,7 @@ erDiagram
     }
     profiles {
         uuid id
-        role_utilisateur role
+        role role
     }
     creneaux_pris {
         timestamptz debut
@@ -39,12 +39,12 @@ erDiagram
 | comptes | gérés par Supabase (`auth.users`) | les comptes créés depuis l'application, avec l'adresse e-mail et le mot de passe : on ne crée pas cette table, Supabase la tient |
 | `creneaux_pris` | `debut` (date et heure, la clé), `client_id` (le compte qui a réservé) | le planning : les heures prises, sans aucune coordonnée, pour que tout le monde puisse le lire |
 | `rendez_vous` | `debut` (date et heure, la clé), `client_id`, `nom`, `telephone`, `motif`, `precision` | le carnet : le rendez-vous et les coordonnées du client, que seuls le client et Fatou lisent |
-| `profiles` | `id` (le compte), `role` (`client` ou `coiffeur`, un type énuméré `role_utilisateur`, `client` par défaut) | ce que chaque compte est : un client, ou Fatou, la coiffeuse. L'application crée la ligne d'un client à son inscription ; celle de Fatou se crée à la main |
+| `profiles` | `id` (le compte), `role` (`client` ou `admin`, un type énuméré `role`, `client` par défaut) | ce que chaque compte est : `client` pour un client, `admin` pour Fatou. L'application crée la ligne d'un client à sa première connexion ; le rôle `admin` de Fatou se pose à la main, dans Supabase |
 
 ## Les liens
 
 - **Un compte a au plus un profil (un à un)** : `profiles.id` est l'identifiant du compte. Celui d'un client porte le rôle
-  `client`, celui de Fatou le rôle `coiffeur`.
+  `client`, celui de Fatou le rôle `admin`.
 - **Un compte réserve plusieurs heures, et prend plusieurs rendez-vous (un à plusieurs)** : dans le planning comme dans
   le carnet, `client_id` désigne le compte.
 - **Une heure du planning porte au plus un rendez-vous (un à un)** : `rendez_vous.debut` renvoie à `creneaux_pris.debut`,
@@ -59,7 +59,7 @@ prises. L'heure va dans le planning, ouvert à tous ; les coordonnées vont dans
 - Pour réserver, elle ajoute d'abord l'heure au planning, puis le rendez-vous au carnet ; si le carnet refuse, elle
   retire l'heure. Pour annuler, elle supprime le rendez-vous, puis l'heure.
 - Dans les deux tables, elle remplit elle-même `client_id` avec le compte connecté.
-- À l'inscription d'un client, elle crée sa ligne de `profiles`, avec le rôle `client`. Elle ne lit jamais `profiles` :
-  c'est la base de données qui s'en sert, pour reconnaître le coiffeur.
+- Quand un compte se connecte sans avoir encore sa ligne de `profiles`, elle la crée, avec le rôle `client`. Elle ne lit
+  jamais `profiles` : c'est la base de données qui s'en sert, pour reconnaître Fatou.
 - Elle ne trie rien : **Mes rendez-vous** affiche ce que la base rend à la personne connectée. Si la base rend tout,
   chaque client voit tout.
