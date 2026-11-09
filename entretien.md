@@ -28,8 +28,8 @@ données de Créneau, sa prise de rendez-vous en ligne.
 - Un client ne voit jamais les rendez-vous des autres.
 - Fatou a un compte comme ses clients. Une fois connectée, elle voit tous les rendez-vous. Elle ne les annule pas en
   ligne : elle appelle le client.
-- Chaque compte a un rôle : client ou coiffeur. Un nouveau compte est client ; seule Fatou est coiffeuse, et ce rôle ne
-  se donne pas en ligne.
+- Chaque compte a un rôle : client ou admin. Un nouveau compte est client ; seul celui de Fatou est admin, et ce rôle
+  ne se donne pas en ligne.
 - Personne d'autre que Fatou ne doit pouvoir se faire passer pour la coiffeuse.
 
 ## Ce qu'on ne fait pas
